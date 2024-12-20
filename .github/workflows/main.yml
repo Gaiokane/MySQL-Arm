@@ -20,7 +20,8 @@ jobs:
           set -e
           yum -y update &&
           yum clean all &&
-          yum install -y cmake gcc gcc-c++ libaio-devel ncurses-devel bison wget git make openssl-devel libtirpc-devel perl zlib-devel libcurl-devel pam-devel libevent-devel &&
+          yum groupinstall -y 'Development Tools'
+          yum install -y cmake gcc gcc-c++ libaio-devel ncurses-devel bison wget git make openssl-devel boost-devel libtirpc libtirpc-devel perl zlib-devel libcurl-devel pam-devel libevent-devel rpcgen &&
           mkdir mysql-5.7.44 &&
           cd mysql-5.7.44 &&
           wget https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.44.tar.gz &&
