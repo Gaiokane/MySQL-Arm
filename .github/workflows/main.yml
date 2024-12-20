@@ -1,4 +1,4 @@
-name: Build MySQL 5.7.44 RPM for ARM on Kylin-V10-SP3
+name: Build MySQL 5.7.44 RPM for ARM on CentOS
 
 on: [push]
 
@@ -28,10 +28,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Build the custom Docker image using the specified Dockerfile
-      - name: Build Docker image
+      # Build and load Docker image
+      - name: Build and load Docker image
         run: |
-          docker buildx build --platform linux/arm64 --cache-to type=local,dest=/tmp/.buildx-cache --cache-from type=local,src=/tmp/.buildx-cache -t my-mysql-builder:latest -f Dockerfile .
+          docker buildx build --platform linux/arm64 --cache-to type=local,dest=/tmp/.buildx-cache --cache-from type=local,src=/tmp/.buildx-cache -t my-mysql-builder:latest -f Dockerfile --load
 
       # Cache CMake builds to speed up subsequent builds
       - name: Cache CMake
