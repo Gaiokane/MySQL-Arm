@@ -31,7 +31,7 @@ jobs:
       # Build and load Docker image
       - name: Build and load Docker image
         run: |
-          docker buildx build --platform linux/arm64 --cache-to type=local,dest=/tmp/.buildx-cache --cache-from type=local,src=/tmp/.buildx-cache -t my-mysql-builder:latest -f Dockerfile --load
+          docker buildx build --platform linux/arm64 --cache-to type=local,dest=/tmp/.buildx-cache --cache-from type=local,src=/tmp/.buildx-cache -t my-mysql-builder:latest -f Dockerfile --load .
 
       # Cache CMake builds to speed up subsequent builds
       - name: Cache CMake
