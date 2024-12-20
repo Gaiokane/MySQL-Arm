@@ -20,13 +20,13 @@ jobs:
           set -e
           yum -y update &&
           yum clean all &&
-          yum install -y cmake gcc gcc-c++ libaio-devel ncurses-devel bison wget git make &&
+          yum install -y cmake gcc gcc-c++ libaio-devel ncurses-devel bison wget git make openssl-devel &&
           mkdir mysql-5.7.44 &&
           cd mysql-5.7.44 &&
           wget https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.44.tar.gz &&
           tar -xzf mysql-5.7.44.tar.gz &&
           cd mysql-5.7.44 &&
-          cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./boost &&
+          cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./boost -DWITH_SSL=system &&
           make &&
           make package &&
           cp *.rpm /workspace
