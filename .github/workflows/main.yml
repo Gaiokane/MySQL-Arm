@@ -1,4 +1,4 @@
-name: Build MySQL 5.7.44 RPM for ARM on CentOS
+name: Build MySQL 5.7.44 RPM for ARM on Kylin-V10-SP3
 
 on: [push]
 
@@ -9,30 +9,56 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up ARM CentOS environment
-        run: |
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          docker pull --platform linux/arm64 hxsoong/kylin:v10-sp3
+      # Set up QEMU to enable ARM emulation
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
 
+      # Cache Docker layers to speed up subsequent builds
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      # Set up Docker Buildx to support multi-platform builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Build the custom Docker image using the specified Dockerfile
+      - name: Build Docker image
+        run: |
+          docker buildx build --platform linux/arm64 --cache-to type=local,dest=/tmp/.buildx-cache --cache-from type=local,src=/tmp/.buildx-cache -t my-mysql-builder:latest -f Dockerfile .
+
+      # Cache CMake builds to speed up subsequent builds
+      - name: Cache CMake
+        uses: actions/cache@v3
+        with:
+          path: /workspace/mysql-5.7.44
+          key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-
+
+      # Run the build process inside the custom Docker image
       - name: Build MySQL RPM for ARM on CentOS
         run: |
-          docker run --rm --platform linux/arm64 -v $(pwd):/workspace -w /workspace hxsoong/kylin:v10-sp3 /bin/bash -c "
+          docker run --rm --platform linux/arm64 -v $(pwd):/workspace -w /workspace my-mysql-builder:latest /bin/bash -c "
           set -e
-          yum -y update &&
-          yum clean all &&
-          yum groupinstall -y 'Development Tools'
-          yum install -y cmake gcc gcc-c++ libaio-devel ncurses-devel bison wget git make openssl-devel boost-devel libtirpc libtirpc-devel perl zlib-devel libcurl-devel pam-devel libevent-devel rpcgen &&
-          mkdir mysql-5.7.44 &&
+          mkdir -p mysql-5.7.44 &&
           cd mysql-5.7.44 &&
           wget https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.44.tar.gz &&
           tar -xzf mysql-5.7.44.tar.gz &&
           cd mysql-5.7.44 &&
           cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./boost -DWITH_SSL=system &&
           make &&
-          make package &&
+          cpack -G RPM &&
           cp *.rpm /workspace
           "
 
+      # Upload the generated RPM package as an artifact
       - name: Upload RPM to GitHub Releases
         uses: actions/upload-artifact@v3
         with:
