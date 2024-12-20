@@ -12,17 +12,15 @@ jobs:
       - name: Set up ARM CentOS environment
         run: |
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          docker pull --platform linux/arm64/v8 arm64v8/centos:7
+          docker pull --platform linux/arm64 hxsoong/kylin:v10-sp3
 
       - name: Build MySQL RPM for ARM on CentOS
         run: |
-          docker run --rm --platform linux/arm64/v8 -v $(pwd):/workspace -w /workspace arm64v8/centos:7 /bin/bash -c "
+          docker run --rm --platform linux/arm64 -v $(pwd):/workspace -w /workspace hxsoong/kylin:v10-sp3 /bin/bash -c "
           set -e
-          yum install -y epel-release &&
-          curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirror.centos.org/centos/7/os/aarch64/CentOS-Base.repo &&
+          yum -y update &&
           yum clean all &&
-          yum makecache fast &&
-          yum install -y cmake gcc gcc-c++ libaio-devel ncurses-devel bison rpm-build &&
+          yum install -y cmake gcc gcc-c++ libaio-devel ncurses-devel bison &&
           mkdir mysql-5.7.44 &&
           cd mysql-5.7.44 &&
           wget https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.44.tar.gz &&
