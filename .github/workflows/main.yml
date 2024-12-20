@@ -17,22 +17,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake gcc g++ libaio1 libncurses5-dev bison rpm qemu-user-static
+
       - name: Build MySQL RPM for ARM
         run: |
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
           mkdir mysql-5.7.44
           cd mysql-5.7.44
           wget https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.44.tar.gz
           tar -xzf mysql-5.7.44.tar.gz
           cd mysql-5.7.44
-          # 安装依赖
-          sudo apt-get update
-          sudo apt-get install -y cmake gcc g++ libaio1 libncurses5-dev bison checkinstall
-          # 编译 MySQL
-          cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./boost
+          # 使用 qemu-arm-static 模拟 ARM 环境
+          cp /usr/bin/qemu-arm-static .
+          # 配置和编译 MySQL
+          cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./boost -DCMAKE_TOOLCHAIN_FILE=../toolchain-arm.cmake
           make
           # 创建 RPM 包
-          sudo checkinstall --pkgname=mysql --pkgversion=5.7.44 --pkgrelease=1 --default
+          sudo fpm -s dir -t rpm -n mysql -v 5.7.44 --prefix=/usr/local/mysql .
 
       - name: Upload RPM to GitHub Releases
         uses: actions/upload-artifact@v3
