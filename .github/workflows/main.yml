@@ -1,0 +1,41 @@
+name: Build MySQL 5.7.44 RPM for ARM
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build MySQL RPM for ARM
+        run: |
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          mkdir mysql-5.7.44
+          cd mysql-5.7.44
+          wget https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.44.tar.gz
+          tar -xzf mysql-5.7.44.tar.gz
+          cd mysql-5.7.44
+          # 安装依赖
+          sudo apt-get update
+          sudo apt-get install -y cmake gcc g++ libaio1 libncurses5-dev bison
+          # 编译 MySQL
+          cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./boost
+          make
+          # 创建 RPM 包
+          sudo checkinstall --pkgname=mysql --pkgversion=5.7.44 --pkgrelease=1 --default
+
+      - name: Upload RPM to GitHub Releases
+        uses: actions/upload-artifact@v2
+        with:
+          name: mysql-5.7.44-arm64.rpm
+          path: mysql-5.7.44/mysql-5.7.44-arm64.rpm
