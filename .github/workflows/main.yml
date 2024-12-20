@@ -27,7 +27,7 @@ jobs:
           cd mysql-5.7.44
           # 安装依赖
           sudo apt-get update
-          sudo apt-get install -y cmake gcc g++ libaio1 libncurses5-dev bison
+          sudo apt-get install -y cmake gcc g++ libaio1 libncurses5-dev bison checkinstall
           # 编译 MySQL
           cmake . -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./boost
           make
