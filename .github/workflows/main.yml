@@ -35,7 +35,7 @@ jobs:
           sudo checkinstall --pkgname=mysql --pkgversion=5.7.44 --pkgrelease=1 --default
 
       - name: Upload RPM to GitHub Releases
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: mysql-5.7.44-arm64.rpm
           path: mysql-5.7.44/mysql-5.7.44-arm64.rpm
